@@ -1,0 +1,155 @@
+
+
+.selectDisable {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+html, body, #game-container {
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+
+#game-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    overflow: auto;
+    text-align: center;
+    padding: 1rem;
+}
+
+.body,
+.wrapper {
+  /* Break the flow */
+  position: absolute;
+  top: 0px;
+
+  /* Give them all the available space */
+  width: 100%;
+  height: 100%;
+
+  /* Remove the margins if any */
+  margin: 0;
+
+  /* Allow them to scroll down the document */
+  overflow-y: hidden;
+}
+
+.body {
+  /* Sending body at the bottom of the stack */
+  z-index: 1;
+}
+
+.wrapper {
+  /* Making the wrapper stack above the body */
+  z-index: 2;
+}
+
+.question-value {
+    background-color: blue;
+    text-align: center;
+}
+.question-value, .question-value th, .question-value td {
+    border: 1px black solid;
+    border-collapse: collapse;
+}
+
+.question-value thead th {
+    background-color: #768d87;
+    padding: 0.25em 0.5em;
+}
+
+.question-value tbody {
+    background-color: lightgray;
+    padding: 0.25em 0.5em;
+}
+
+.question-term {
+    margin: 1rem 0;
+    font-size: 1.5rem;
+}
+
+.question-answer-button {
+	box-shadow:inset 0px 1px 3px 0px #91b8b3;
+	background-color:#768d87;
+	border-radius:5px;
+	border:1px solid #566963;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	padding:11px 23px;
+    margin: 4px;
+    position: relative;
+}
+.question-answer-button:disabled {
+    cursor: default;
+    opacity: 0.4;
+}
+/*
+.question-answer-button:disabled::after {
+    position: absolute;
+    filter: brightness(70%);
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: inherit;
+    display: block;
+    content: '';
+}
+*/
+
+td.fitwidth {
+    width: 1px;
+    padding: 8px;
+    white-space: nowrap;
+    color: white;
+    font-weight: bold;
+}
+
+.vote-tally {
+    background-color: gray;
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+}
+
+.vote-tally-bar {
+    background-color: #2f5f80;
+    color: white;
+    font-weight: bold;
+    text-align: left;
+    display: block;
+    margin: 4px 0;
+    padding: 4px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    white-space: nowrap;
+}
+
+.lifeline-list {
+    text-align: left;
+}
+.lifeline-list li {
+    margin-bottom: 1rem;
+}
+
+.decoration-image {
+    width: 100%;
+    max-width: 200px;
+}
