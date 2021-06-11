@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useArrayState } from "react-use-object-state";
 import Swal from 'sweetalert2';
 import 'core-js/stable';
 import { Howl } from 'howler';
-
+import clsx from 'classnames';
 
 function getRandomIntInclusive(min: number, max: number): number {
     min = Math.ceil(min);
@@ -18,6 +18,11 @@ const correctSound = new Howl({
 
 const incorrectSound = new Howl({
     src: ['incorrect.mp3']
+});
+
+const backgroundSong = new Howl({
+    src: ['thinking.mp3'],
+    loop: true
 });
 
 const powerupSound = new Howl({
@@ -196,15 +201,32 @@ function openLifelineGuide(e) {
         `
     })
 }
+
+const MoneyTowerEntry = (props) => {
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if(ref.current != null) {
+            ref.current.scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+    }, [ props.currentQuestionIndex ]);
+    return <div ref={ref} className={clsx("money-tower-entry", (props.currentQuestionIndex)==(questionValues.length-1-props.index) && "money-tower-entry-current")}>
+        <span className="money-tower-question-number">{questionValues.length-props.index}</span>
+        <span className="money-tower-value">{formatCurrency(props.value)}</span>
+    </div>;
+};
 function App() {
     const [ currentGameState, setCurrentGameState ] = useState(GameState.ANSWERING_QUESTIONS);
     const [ scriptProcessed, setScriptProcessed ] = useState(false);
     const [ currentQuestionIndex, setCurrentQuestionIndex ] = useState(0);
     const [ currentMoney, setCurrentMoney ] = useState(0);
+    const [ readyToStart, setShowReadyToStart ] = useState(false);
     const [ answers, setAnswers ] = useState(null);
     const [ activeLifeline, setActiveLifeline ] = useState<Lifeline>(null);
     const [ doubleDippedAnswer, setDoubleDippedAnswer ] = useState(null);
     const [ protectedDoubleDip, setProtectedDoubleDip ] = useState(false);
+    const [ thatWasCorrect, setThatWasCorrect ] = useState(false);
     const usedLifelineTypes = useArrayState<Lifeline>([]);
     const questionValue = questionValues[currentQuestionIndex];
     const answerSideArray = (window as any)[answerSide];
@@ -218,10 +240,10 @@ function App() {
             correctSound.play();
         else
             incorrectSound.play();
-
+        backgroundSong.pause();
         if(isCorrect) {
             setCurrentMoney(questionValue);
-            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setThatWasCorrect(true);
         } else if(protectedDoubleDip) {
             setDoubleDippedAnswer(answer);
             setProtectedDoubleDip(false);
@@ -233,17 +255,35 @@ function App() {
             setCurrentGameState(GameState.FAILED);
         }
     };
+    useEffect(() => {
+        if(thatWasCorrect) {
+            var t = setTimeout(() => {
+                setThatWasCorrect(false);
+                setCurrentQuestionIndex(currentQuestionIndex + 1);
+                backgroundSong.seek(0);
+                backgroundSong.play();
+            }, 2000);
+            return () => clearTimeout(t);
+        }
+    }, [ thatWasCorrect, currentQuestionIndex ]);
     const useLifeline = (lifeline: Lifeline) => {
         setActiveLifeline(lifeline);
     };
     const playAgain = () => {
         setCurrentQuestionIndex(0);
+        backgroundSong.seek(0);
+        backgroundSong.play();
         setCurrentGameState(GameState.ANSWERING_QUESTIONS);
         setCurrentMoney(0);
         setProtectedDoubleDip(false);
         setDoubleDippedAnswer(null);
         usedLifelineTypes.setState([]);
     };
+    const startGame = () => {
+        setShowReadyToStart(false);
+        setScriptProcessed(true);
+        playAgain();
+    }
     useEffect(() => {
         setDoubleDippedAnswer(null);
         setProtectedDoubleDip(false);
@@ -291,9 +331,14 @@ function App() {
             });
         } else {
             const script = document.createElement("script");
-            script.onload = () => setScriptProcessed(true);
+            script.onload = () => {
+                /* Backwards compatibility */
+                (window as any).terms = (window as any).questions.map(q => q.question);
+                (window as any).definitions = (window as any).questions.map(q => q.answers[0]);
+                setShowReadyToStart(true);
+            }
 
-            script.src = src;
+            script.src = src + (src.includes("?") ? "&" : "?") + "type=objectarray";
             script.async = true;
         
             document.body.appendChild(script);
@@ -304,56 +349,57 @@ function App() {
     if(activeLifeline != null) {
         return null;
     } else if(currentGameState == GameState.FAILED) {
-        return <>
+        return <div className="message">
             <h3>Uh oh! That wasn't the right answer.</h3>
             <h4>Your total earnings are: <b>{formatCurrency(currentMoney)}</b></h4>
             <button className="question-answer-button" onClick={playAgain}>Play again</button>
-        </>;
+        </div>;
     } else if(currentGameState == GameState.FINISHED_QUESTIONS) {
-        return <>
+        return <div className="message">
             <h3>Congratulations! You are now a millionaire!</h3>
             <p></p>
             <img className="decoration-image" src="moneybag.png"/>
-        </>;
+        </div>;
     }
     if(scriptProcessed) {
         mainApp = <>
-            <h2>Who Wants To Be A Millionaire?</h2>
-            <table className="question-value">
-                <thead>
-                    <tr>
-                        <th scope="col">YOUR MONEY</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {/*<td>{formatCurrency(questionValue)}</td>*/}
-                        <td>{formatCurrency(currentMoney)}</td>
-                    </tr>
-                </tbody>
-
-            </table>
-            <div className="question-term">
-                {(window as any)[questionSide][currentQuestionIndex]}
+            <div className="main-app">
+                <div className="question-side">
+                    <div className="question-term-container">
+                        <div className="question-answer-button question-answer-button-with-background question-term">
+                            {(currentQuestionIndex+1) + ". " + (window as any)[questionSide][currentQuestionIndex]}
+                        </div>
+                    </div>
+                    <div className="question-options">
+                        {answers?.map((answer, i) => <button disabled={doubleDippedAnswer == answer || thatWasCorrect} key={answer} className={clsx("question-answer-button", "question-answer-button-with-background", doubleDippedAnswer == answer && "question-answer-double-dipped", thatWasCorrect && correctAnswer == answer && "question-answer-was-correct")} onClick={onAnswerClick.bind(void 0, answer)}>
+                            <span className="answer-letter">{String.fromCharCode('A'.charCodeAt(0) + i) + ':'}</span>&nbsp;<span className="answer-content">{answer}</span>
+                        </button>)}
+                    </div>
+                    <p></p>
+                    <p></p>
+                    <h4 className="lifeline-note">Having trouble? Click one of the buttons below to use a lifeline (<a href="#" onClick={openLifelineGuide}>open guide</a>).</h4>
+                    <div className="lifeline-options">
+                        <LifelineButton disabled={thatWasCorrect} usedList={usedLifelineTypes.state} lifeline={Lifeline.ASK_THE_AUDIENCE} onClick={useLifeline}>Ask the Audience</LifelineButton>
+                        <LifelineButton disabled={thatWasCorrect || protectedDoubleDip || doubleDippedAnswer != null} usedList={usedLifelineTypes.state} lifeline={Lifeline.FIFTY_FIFTY} onClick={useLifeline}>50:50</LifelineButton>
+                        <LifelineButton disabled={thatWasCorrect} usedList={usedLifelineTypes.state} lifeline={Lifeline.DOUBLE_DIP} onClick={useLifeline}>Double Dip</LifelineButton>
+                        <LifelineButton disabled={thatWasCorrect} usedList={usedLifelineTypes.state} lifeline={Lifeline.JUMP_THE_QUESTION} onClick={useLifeline}>Jump The Question</LifelineButton>
+                    </div>
+                    <p></p>
+                </div>
+                <div className="money-tower-container">
+                    <div className="money-tower">
+                        {questionValues.slice().reverse().map((value, i) => <MoneyTowerEntry key={i} index={i} value={value} currentQuestionIndex={currentQuestionIndex}/>)}
+                    </div>
+                </div>
             </div>
-            <div className="question-options">
-                {answers?.map(answer => <button disabled={doubleDippedAnswer == answer} key={answer} className="question-answer-button" onClick={onAnswerClick.bind(void 0, answer)}>{answer}</button>)}
-            </div>
-            <p></p>
-            <p></p>
-            <h4>Having trouble? Click one of the buttons below to use a lifeline.</h4>
-            <div className="lifeline-options">
-                <LifelineButton usedList={usedLifelineTypes.state} lifeline={Lifeline.ASK_THE_AUDIENCE} onClick={useLifeline}>Ask the Audience</LifelineButton>
-                <LifelineButton disabled={protectedDoubleDip || doubleDippedAnswer != null} usedList={usedLifelineTypes.state} lifeline={Lifeline.FIFTY_FIFTY} onClick={useLifeline}>50:50</LifelineButton>
-                <LifelineButton usedList={usedLifelineTypes.state} lifeline={Lifeline.DOUBLE_DIP} onClick={useLifeline}>Double Dip</LifelineButton>
-                <LifelineButton usedList={usedLifelineTypes.state} lifeline={Lifeline.JUMP_THE_QUESTION} onClick={useLifeline}>Jump The Question</LifelineButton>
-            </div>
-            <p></p>
-            <a href="#" onClick={openLifelineGuide}>Lifeline Guide</a>
         </>;
     }
     return <>
         {mainApp}
+        {mainApp == null && <div className="message">
+            <h1 className="lifeline-note" style={{width: "100%"}}>Who Wants To Be a Millionaire?</h1>
+            <button disabled={!readyToStart} onClick={startGame} className="question-answer-button get-started-button">Get started!</button>
+        </div>}
     </>;
 }
 

@@ -17,6 +17,7 @@ specifiers:
   assets-webpack-plugin: ^6.1.2
   babel-loader: ^8.2.2
   browserslist: ^4.16.5
+  classnames: ^2.3.1
   clean-webpack-plugin: ^3.0.0
   core-js: ^3.10.2
   css-loader: ^5.2.4
@@ -42,6 +43,7 @@ specifiers:
 
 dependencies:
   browserslist: 4.16.5
+  classnames: 2.3.1
   howler: 2.2.1
   react: 17.0.2
   react-dom: 17.0.2_react@17.0.2
@@ -1956,6 +1958,10 @@ packages:
       isobject: 3.0.1
       static-extend: 0.1.2
     dev: true
+
+  /classnames/2.3.1:
+    resolution: {integrity: sha512-OlQdbZ7gLfGarSqxesMesDa5uz7KFbID8Kpq/SxIoNGDqY8lSYs0D+hhtBXhcdB3rcbXArFr7vlHheLk1voeNA==}
+    dev: false
 
   /clean-webpack-plugin/3.0.0_webpack@4.46.0:
     resolution: {integrity: sha512-MciirUH5r+cYLGCOL5JX/ZLzOZbVr1ot3Fw+KcvbhUb6PM+yycqd9ZhIlcigQ5gl+XhppNmw3bEFuaaMNyLj3A==}
