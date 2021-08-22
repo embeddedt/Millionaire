@@ -88,7 +88,7 @@ function formatCurrency(num: number) {
         return "---";
     return "$" + num.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-const MAX_QUESTIONS = 5;
+const MAX_QUESTIONS = 15;
 const questionValues = [
     100,
     200,
