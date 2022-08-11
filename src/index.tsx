@@ -129,7 +129,6 @@ async function askAudience(options: string[], correctAnswer: string) {
         timerProgressBar: true
     });
     let audienceCorrect = Math.random();
-    let audienceIncorrectUnanimity = Math.random();
     let audienceChoices = [];
     for(let i = 0; i < options.length; i++) {
         audienceChoices[i] = 0;
@@ -139,14 +138,25 @@ async function askAudience(options: string[], correctAnswer: string) {
     do {
         incorrectIndex = getRandomIntInclusive(0, options.length - 1);
     } while(incorrectIndex == correctIndex);
+    let incorrectIndexOther;
+    if(options.length > 2) {
+        do {
+            incorrectIndexOther = getRandomIntInclusive(0, options.length - 1);
+        } while(incorrectIndexOther == correctIndex || incorrectIndexOther == incorrectIndex);
+    } else
+        incorrectIndexOther = incorrectIndex;
+    let incorrectPercentageSplit = 0.4 + (Math.random() / 5);
     const AUDIENCE_NUM = getRandomIntInclusive(10, 500);
     for(let i = 0; i < AUDIENCE_NUM; i++) {
         let chosenIndex;
         if(Math.random() <= audienceCorrect) {
             chosenIndex = correctIndex;
         } else {
-            if(Math.random() <= audienceIncorrectUnanimity) {
-                 chosenIndex = incorrectIndex;
+            if(true) {
+                if(Math.random() <= incorrectPercentageSplit)
+                    chosenIndex = incorrectIndex;
+                else
+                    chosenIndex = incorrectIndexOther;
             } else {
                 do {
                     chosenIndex = getRandomIntInclusive(0, options.length - 1);
