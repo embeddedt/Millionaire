@@ -128,7 +128,6 @@ async function askAudience(options: string[], correctAnswer: string) {
         timer: 5000,
         timerProgressBar: true
     });
-    let audienceCorrect = Math.random();
     let audienceChoices = [];
     for(let i = 0; i < options.length; i++) {
         audienceChoices[i] = 0;
@@ -138,30 +137,21 @@ async function askAudience(options: string[], correctAnswer: string) {
     do {
         incorrectIndex = getRandomIntInclusive(0, options.length - 1);
     } while(incorrectIndex == correctIndex);
-    let incorrectIndexOther;
-    if(options.length > 2) {
-        do {
-            incorrectIndexOther = getRandomIntInclusive(0, options.length - 1);
-        } while(incorrectIndexOther == correctIndex || incorrectIndexOther == incorrectIndex);
-    } else
-        incorrectIndexOther = incorrectIndex;
     let incorrectPercentageSplit = 0.4 + (Math.random() / 5);
+    let numVotingForTwoAnswers = 0.6 + (Math.random() / 5) * 2;
     const AUDIENCE_NUM = getRandomIntInclusive(10, 500);
     for(let i = 0; i < AUDIENCE_NUM; i++) {
         let chosenIndex;
-        if(Math.random() <= audienceCorrect) {
-            chosenIndex = correctIndex;
-        } else {
-            if(true) {
-                if(Math.random() <= incorrectPercentageSplit)
-                    chosenIndex = incorrectIndex;
-                else
-                    chosenIndex = incorrectIndexOther;
+        if(options.length <= 2 || Math.random() <= numVotingForTwoAnswers) {
+            if(Math.random() <= incorrectPercentageSplit) {
+                chosenIndex = correctIndex;
             } else {
-                do {
-                    chosenIndex = getRandomIntInclusive(0, options.length - 1);
-                } while(chosenIndex == correctIndex);
+                chosenIndex = incorrectIndex;
             }
+        } else {
+            do {
+                chosenIndex = getRandomIntInclusive(0, options.length - 1);
+            } while(chosenIndex == correctIndex || chosenIndex == incorrectIndex);
         }
         audienceChoices[chosenIndex]++;
     }
